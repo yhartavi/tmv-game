@@ -1,0 +1,687 @@
+<title>The Banker's Offer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#F5F6F3;
+    --surface:#FFFFFF;
+    --surface-alt:#EBEFEA;
+    --ink:#16211C;
+    --ink-soft:#4B564F;
+    --ink-faint:#7C877F;
+    --accent:#146356;
+    --accent-strong:#0E4B41;
+    --accent-soft:#DCEAE4;
+    --gold:#A9812E;
+    --gold-soft:#F2E8D2;
+    --border:#D8DED9;
+    --danger:#A6412F;
+    --danger-soft:#F3E2DD;
+    --shadow: 0 1px 2px rgba(20,30,25,.06), 0 8px 24px -12px rgba(20,30,25,.18);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0F1512;
+      --surface:#161E1A;
+      --surface-alt:#1D2621;
+      --ink:#EDF2ED;
+      --ink-soft:#A4B2A9;
+      --ink-faint:#78877D;
+      --accent:#4CB397;
+      --accent-strong:#6FCBB0;
+      --accent-soft:#17332B;
+      --gold:#D8B665;
+      --gold-soft:#332A16;
+      --border:#2B3630;
+      --danger:#E0796A;
+      --danger-soft:#3A241F;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px -12px rgba(0,0,0,.5);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F1512;
+    --surface:#161E1A;
+    --surface-alt:#1D2621;
+    --ink:#EDF2ED;
+    --ink-soft:#A4B2A9;
+    --ink-faint:#78877D;
+    --accent:#4CB397;
+    --accent-strong:#6FCBB0;
+    --accent-soft:#17332B;
+    --gold:#D8B665;
+    --gold-soft:#332A16;
+    --border:#2B3630;
+    --danger:#E0796A;
+    --danger-soft:#3A241F;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px -12px rgba(0,0,0,.5);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    padding-inline:20px;
+    padding-block:36px 64px;
+  }
+  .wrap{max-width:840px;margin-inline:auto;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(32px,6vw,46px);
+    line-height:1.05;
+    margin:10px 0 12px;
+    text-wrap:balance;
+    letter-spacing:-.01em;
+  }
+  .dek{
+    color:var(--ink-soft);
+    font-size:16px;
+    line-height:1.55;
+    max-width:62ch;
+    margin:0 0 8px;
+  }
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:18px;
+  }
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    padding:5px 10px;
+    border-radius:100px;
+  }
+
+  nav.rounds-nav{
+    display:flex;
+    gap:8px;
+    margin:32px 0 28px;
+    flex-wrap:wrap;
+    border-bottom:1px solid var(--border);
+    padding-bottom:0;
+  }
+  nav.rounds-nav a{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    padding:8px 4px 12px;
+    border-bottom:2px solid transparent;
+  }
+  nav.rounds-nav a:hover{color:var(--ink);}
+
+  section.round{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:26px 24px 28px;
+    margin-bottom:22px;
+    box-shadow:var(--shadow);
+    scroll-margin-top:16px;
+  }
+  .round-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+  }
+  .round-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:3px 9px;
+    border-radius:100px;
+    letter-spacing:.04em;
+  }
+  h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0;
+    letter-spacing:-.005em;
+  }
+  .round-prompt{
+    color:var(--ink-soft);
+    font-size:15px;
+    line-height:1.6;
+    margin:10px 0 20px;
+    max-width:64ch;
+  }
+
+  .field-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
+    gap:16px;
+    margin-bottom:20px;
+  }
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .field .input-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  input[type="number"]{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:15px;
+    font-variant-numeric:tabular-nums;
+    color:var(--ink);
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 10px;
+    width:100%;
+    min-width:0;
+  }
+  input[type="number"]:focus, input[type="range"]:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  input[type="range"]{
+    width:100%;
+    accent-color:var(--accent);
+  }
+  .unit{font-size:13px; color:var(--ink-faint); font-family:'IBM Plex Mono', monospace;}
+
+  .result-panel{
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 20px;
+  }
+  .result-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    padding:7px 0;
+    border-bottom:1px dashed var(--border);
+    font-size:14px;
+  }
+  .result-line:last-of-type{border-bottom:none;}
+  .result-line .k{color:var(--ink-soft);}
+  .result-line .v{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+  }
+
+  .verdict{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:14px;
+    line-height:1.5;
+    font-weight:500;
+  }
+  .verdict.good{background:var(--accent-soft); color:var(--accent-strong);}
+  .verdict.warn{background:var(--danger-soft); color:var(--danger);}
+  .verdict.gold{background:var(--gold-soft); color:var(--gold);}
+
+  .bars{
+    display:flex;
+    align-items:flex-end;
+    gap:22px;
+    height:140px;
+    margin:18px 0 6px;
+    padding:0 4px;
+  }
+  .bar-col{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+    height:100%;
+    gap:8px;
+    min-width:0;
+  }
+  .bar-col .bar{
+    width:100%;
+    max-width:88px;
+    border-radius:6px 6px 3px 3px;
+    transition:height .25s ease;
+    min-height:3px;
+  }
+  .bar-col.a .bar{background:var(--accent);}
+  .bar-col.b .bar{background:var(--gold);}
+  .bar-col .bar-value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  .bar-col .bar-label{
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+
+  canvas{
+    width:100%;
+    height:220px;
+    display:block;
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:12px;
+  }
+  .legend{
+    display:flex;
+    gap:18px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .swatch{width:12px; height:12px; border-radius:3px; flex:none;}
+
+  .formula{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-top:14px;
+    color:var(--ink-soft);
+    overflow-x:auto;
+  }
+
+  footer{
+    margin-top:36px;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+    color:var(--ink-faint);
+    font-size:13px;
+    line-height:1.6;
+  }
+  footer a{color:var(--accent);}
+
+  @media (max-width:480px){
+    section.round{padding:20px 16px 22px;}
+    .bars{gap:12px;}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="eyebrow">Corporate Finance &middot; Time Value of Money</div>
+  <h1>The Banker's Offer</h1>
+  <p class="dek">A live, interactive walkthrough of the intuitions behind present and future value &mdash; run it in class after the "copy dollar" rounds, or let students explore it on their own devices.</p>
+  <div class="meta-row">
+    <span class="chip">3 rounds</span>
+    <span class="chip">No server, no build step</span>
+    <span class="chip">Edit the numbers, watch the outcome change</span>
+  </div>
+
+  <nav class="rounds-nav">
+    <a href="#round1">Round 1 &middot; Now vs. Later</a>
+    <a href="#round2">Round 2 &middot; Compounding</a>
+    <a href="#round3">Round 3 &middot; The Lottery Twist</a>
+    <a href="#debrief">Debrief</a>
+  </nav>
+
+  <!-- ROUND 1 -->
+  <section class="round" id="round1">
+    <div class="round-head">
+      <span class="round-num">Round 1</span>
+      <h2>Now vs. Later</h2>
+    </div>
+    <p class="round-prompt">The bank offers you an amount today, or a larger amount after you wait. If you took the money today, you could invest it yourself at some rate. Change the numbers and see when waiting actually wins.</p>
+
+    <div class="field-grid">
+      <div class="field">
+        <label for="r1-today">Offered today</label>
+        <div class="input-row"><input type="number" id="r1-today" value="10" min="0" step="1"><span class="unit">notes</span></div>
+      </div>
+      <div class="field">
+        <label for="r1-future">Offered after waiting</label>
+        <div class="input-row"><input type="number" id="r1-future" value="12" min="0" step="1"><span class="unit">notes</span></div>
+      </div>
+      <div class="field">
+        <label for="r1-years">Wait</label>
+        <div class="input-row"><input type="number" id="r1-years" value="1" min="1" max="10" step="1"><span class="unit">years</span></div>
+      </div>
+      <div class="field">
+        <label for="r1-rate">Your own investing rate</label>
+        <div class="input-row"><input type="number" id="r1-rate" value="8" min="0" max="100" step="0.5"><span class="unit">% / yr</span></div>
+      </div>
+    </div>
+
+    <div class="bars">
+      <div class="bar-col a">
+        <span class="bar-value" id="r1-bar-a-val">10</span>
+        <div class="bar" id="r1-bar-a" style="height:40%"></div>
+        <span class="bar-label">Take today, invest it yourself</span>
+      </div>
+      <div class="bar-col b">
+        <span class="bar-value" id="r1-bar-b-val">12</span>
+        <div class="bar" id="r1-bar-b" style="height:48%"></div>
+        <span class="bar-label">Take the bank's future offer</span>
+      </div>
+    </div>
+
+    <div class="result-panel">
+      <div class="result-line"><span class="k">Implied annual return of the bank's offer</span><span class="v" id="r1-implied">18.9%</span></div>
+      <div class="result-line"><span class="k">Value if you'd invested today's offer yourself</span><span class="v" id="r1-selfgrow">10.80 notes</span></div>
+    </div>
+    <div class="verdict good" id="r1-verdict">Take the bank's offer &mdash; it beats what you could earn on your own.</div>
+    <div class="formula">implied rate = (future / today)<sup>1/years</sup> &minus; 1</div>
+  </section>
+
+  <!-- ROUND 2 -->
+  <section class="round" id="round2">
+    <div class="round-head">
+      <span class="round-num">Round 2</span>
+      <h2>Compounding</h2>
+    </div>
+    <p class="round-prompt">Put a starting balance in the bank at a fixed annual rate. Watch how compound interest &mdash; interest earned on interest &mdash; pulls away from simple interest as the years pass.</p>
+
+    <div class="field-grid">
+      <div class="field">
+        <label for="r2-principal">Starting balance</label>
+        <div class="input-row"><input type="number" id="r2-principal" value="5" min="0" step="1"><span class="unit">notes</span></div>
+      </div>
+      <div class="field">
+        <label for="r2-rate">Annual rate</label>
+        <div class="input-row"><input type="number" id="r2-rate" value="20" min="0" max="100" step="1"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label for="r2-years">Horizon: <span id="r2-years-val">10</span> years</label>
+        <div class="input-row"><input type="range" id="r2-years" value="10" min="2" max="25" step="1"></div>
+      </div>
+    </div>
+
+    <canvas id="r2-canvas" width="760" height="220"></canvas>
+    <div class="legend">
+      <div class="legend-item"><span class="swatch" style="background:var(--gold)"></span>Simple interest</div>
+      <div class="legend-item"><span class="swatch" style="background:var(--accent)"></span>Compound interest</div>
+    </div>
+
+    <div class="result-panel" style="margin-top:16px;">
+      <div class="result-line"><span class="k">Simple interest, final balance</span><span class="v" id="r2-simple-final">15.00 notes</span></div>
+      <div class="result-line"><span class="k">Compound interest, final balance</span><span class="v" id="r2-compound-final">30.96 notes</span></div>
+      <div class="result-line"><span class="k">Compounding advantage</span><span class="v" id="r2-advantage">+15.96 notes</span></div>
+    </div>
+    <div class="formula">simple: balance = principal &times; (1 + rate &times; years)<br>compound: balance = principal &times; (1 + rate)<sup>years</sup></div>
+  </section>
+
+  <!-- ROUND 3 -->
+  <section class="round" id="round3">
+    <div class="round-head">
+      <span class="round-num">Round 3</span>
+      <h2>The Lottery Twist</h2>
+    </div>
+    <p class="round-prompt">A lump sum today, or a stream of smaller payments spread over several years &mdash; which is really worth more? Set a discount rate and compare their value in today's notes.</p>
+
+    <div class="field-grid">
+      <div class="field">
+        <label for="r3-lump">Lump sum today</label>
+        <div class="input-row"><input type="number" id="r3-lump" value="20" min="0" step="1"><span class="unit">notes</span></div>
+      </div>
+      <div class="field">
+        <label for="r3-payment">Annual payment</label>
+        <div class="input-row"><input type="number" id="r3-payment" value="5" min="0" step="1"><span class="unit">notes/yr</span></div>
+      </div>
+      <div class="field">
+        <label for="r3-nyears">For</label>
+        <div class="input-row"><input type="number" id="r3-nyears" value="5" min="1" max="30" step="1"><span class="unit">years</span></div>
+      </div>
+      <div class="field">
+        <label for="r3-disc">Discount rate</label>
+        <div class="input-row"><input type="number" id="r3-disc" value="8" min="0" max="100" step="0.5"><span class="unit">% / yr</span></div>
+      </div>
+    </div>
+
+    <div class="bars">
+      <div class="bar-col a">
+        <span class="bar-value" id="r3-bar-a-val">20</span>
+        <div class="bar" id="r3-bar-a" style="height:65%"></div>
+        <span class="bar-label">Lump sum, present value</span>
+      </div>
+      <div class="bar-col b">
+        <span class="bar-value" id="r3-bar-b-val">20</span>
+        <div class="bar" id="r3-bar-b" style="height:65%"></div>
+        <span class="bar-label">Payment stream, present value</span>
+      </div>
+    </div>
+
+    <div class="result-panel">
+      <div class="result-line"><span class="k">Total nominal notes in the payment stream</span><span class="v" id="r3-nominal">25 notes</span></div>
+      <div class="result-line"><span class="k">Present value of the payment stream</span><span class="v" id="r3-pv">19.96 notes</span></div>
+    </div>
+    <div class="verdict gold" id="r3-verdict">Nearly a toss-up &mdash; the lump sum edges it out once you discount the payments.</div>
+    <div class="formula">PV of payments = payment &times; (1 &minus; (1 + rate)<sup>&minus;years</sup>) / rate</div>
+  </section>
+
+  <section class="round" id="debrief">
+    <div class="round-head">
+      <span class="round-num">Debrief</span>
+      <h2>What the three rounds add up to</h2>
+    </div>
+    <p class="round-prompt" style="margin-bottom:6px;">A note today isn't worth the same as a note later (Round 1). Interest earns interest (Round 2). To compare cash flows at different points in time, everything has to be converted to a common point in time &mdash; usually today (Round 3). That conversion is present and future value.</p>
+    <div class="formula">PV = FV / (1 + r)<sup>n</sup> &nbsp;&nbsp;&middot;&nbsp;&nbsp; FV = PV &times; (1 + r)<sup>n</sup></div>
+  </section>
+
+  <footer>
+    Built for a corporate finance time-value-of-money lesson. Every figure above recalculates client-side as you type &mdash; no data leaves the page. Fork it, change the framing story, or drop it straight into a course site.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var fmt = function(n, d){
+    d = d === undefined ? 2 : d;
+    if (!isFinite(n)) return "—";
+    return n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+  };
+  var $ = function(id){ return document.getElementById(id); };
+
+  // ---------- Round 1 ----------
+  function round1(){
+    var today = parseFloat($('r1-today').value) || 0;
+    var future = parseFloat($('r1-future').value) || 0;
+    var years = Math.max(1, parseFloat($('r1-years').value) || 1);
+    var rate = (parseFloat($('r1-rate').value) || 0) / 100;
+
+    var implied = today > 0 ? Math.pow(future / today, 1 / years) - 1 : 0;
+    var selfGrow = today * Math.pow(1 + rate, years);
+
+    $('r1-implied').textContent = (implied * 100).toFixed(1) + '%';
+    $('r1-selfgrow').textContent = fmt(selfGrow) + ' notes';
+
+    var maxVal = Math.max(future, selfGrow, 1);
+    $('r1-bar-a-val').textContent = fmt(selfGrow);
+    $('r1-bar-b-val').textContent = fmt(future);
+    $('r1-bar-a').style.height = Math.max(4, (selfGrow / maxVal) * 100) + '%';
+    $('r1-bar-b').style.height = Math.max(4, (future / maxVal) * 100) + '%';
+
+    var verdict = $('r1-verdict');
+    var diff = future - selfGrow;
+    if (Math.abs(diff) < 0.005) {
+      verdict.className = 'verdict gold';
+      verdict.textContent = "It's a wash — the bank's offer exactly matches what you'd earn investing it yourself.";
+    } else if (diff > 0) {
+      verdict.className = 'verdict good';
+      verdict.textContent = "Take the bank's offer — waiting beats investing today's money yourself by " + fmt(diff) + ' notes.';
+    } else {
+      verdict.className = 'verdict warn';
+      verdict.textContent = "Take the money today and invest it yourself — you'd end up with " + fmt(Math.abs(diff)) + ' more notes than the bank’s offer.';
+    }
+  }
+
+  // ---------- Round 2 ----------
+  var r2Canvas = $('r2-canvas');
+  var r2Ctx = r2Canvas.getContext('2d');
+
+  function cssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function drawRound2(rows, peak){
+    var ratio = window.devicePixelRatio || 1;
+    var w = r2Canvas.clientWidth || 760, h = 220;
+    r2Canvas.width = w * ratio; r2Canvas.height = h * ratio;
+    var ctx = r2Ctx; ctx.setTransform(ratio,0,0,ratio,0,0);
+    ctx.clearRect(0,0,w,h);
+
+    var left = 46, right = 18, top = 18, bottom = 30;
+    var plotW = w - left - right, plotH = h - top - bottom;
+    var ink = cssVar('--ink-soft'), grid = cssVar('--border'), axis = cssVar('--ink-faint');
+    var accent = cssVar('--accent'), gold = cssVar('--gold');
+
+    ctx.font = '11px IBM Plex Mono, monospace';
+    ctx.strokeStyle = grid; ctx.fillStyle = ink;
+    var steps = 4;
+    for (var s=0; s<=steps; s++){
+      var v = peak * s / steps;
+      var y = top + plotH - (v/peak)*plotH;
+      ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(left+plotW, y);
+      ctx.strokeStyle = s===0 ? axis : grid;
+      ctx.stroke();
+      ctx.fillStyle = ink; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round(v), left-8, y);
+    }
+
+    var n = rows.length;
+    var x = function(i){ return left + (i/(n-1)) * plotW; };
+    var y = function(v){ return top + plotH - (v/peak)*plotH; };
+
+    function line(key, color){
+      ctx.beginPath();
+      rows.forEach(function(r,i){
+        var px = x(i), py = y(r[key]);
+        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      });
+      ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin='round'; ctx.stroke();
+      rows.forEach(function(r,i){
+        ctx.beginPath(); ctx.arc(x(i), y(r[key]), 3, 0, Math.PI*2);
+        ctx.fillStyle = color; ctx.fill();
+      });
+    }
+    line('simple', gold);
+    line('compound', accent);
+
+    ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    var labelEvery = n > 14 ? Math.ceil(n/8) : 1;
+    rows.forEach(function(r,i){
+      if (i % labelEvery === 0 || i === n-1) {
+        ctx.fillText('Y'+r.year, x(i), top+plotH+8);
+      }
+    });
+  }
+
+  function round2(){
+    var principal = parseFloat($('r2-principal').value) || 0;
+    var rate = (parseFloat($('r2-rate').value) || 0) / 100;
+    var years = parseInt($('r2-years').value, 10) || 10;
+    $('r2-years-val').textContent = years;
+
+    var rows = [];
+    var peak = principal;
+    for (var i=0;i<=years;i++){
+      var simple = principal * (1 + rate*i);
+      var compound = principal * Math.pow(1+rate, i);
+      rows.push({year:i, simple:simple, compound:compound});
+      if (simple > peak) peak = simple;
+      if (compound > peak) peak = compound;
+    }
+    peak = Math.ceil(peak / 5) * 5 || 5;
+
+    drawRound2(rows, peak);
+
+    var last = rows[rows.length-1];
+    $('r2-simple-final').textContent = fmt(last.simple) + ' notes';
+    $('r2-compound-final').textContent = fmt(last.compound) + ' notes';
+    $('r2-advantage').textContent = '+' + fmt(last.compound - last.simple) + ' notes';
+  }
+
+  // ---------- Round 3 ----------
+  function round3(){
+    var lump = parseFloat($('r3-lump').value) || 0;
+    var payment = parseFloat($('r3-payment').value) || 0;
+    var n = Math.max(1, parseInt($('r3-nyears').value,10) || 1);
+    var rate = (parseFloat($('r3-disc').value) || 0) / 100;
+
+    var pv;
+    if (rate === 0) {
+      pv = payment * n;
+    } else {
+      pv = payment * (1 - Math.pow(1+rate, -n)) / rate;
+    }
+    var nominal = payment * n;
+
+    $('r3-nominal').textContent = fmt(nominal, 0) + ' notes';
+    $('r3-pv').textContent = fmt(pv) + ' notes';
+
+    var maxVal = Math.max(lump, pv, 1);
+    $('r3-bar-a-val').textContent = fmt(lump, 0);
+    $('r3-bar-b-val').textContent = fmt(pv);
+    $('r3-bar-a').style.height = Math.max(4, (lump/maxVal)*100) + '%';
+    $('r3-bar-b').style.height = Math.max(4, (pv/maxVal)*100) + '%';
+
+    var verdict = $('r3-verdict');
+    var diff = lump - pv;
+    if (Math.abs(diff) < 0.02) {
+      verdict.className = 'verdict gold';
+      verdict.textContent = "It's a genuine toss-up — the two options are worth almost exactly the same today.";
+    } else if (diff > 0) {
+      verdict.className = 'verdict good';
+      verdict.textContent = 'The lump sum is worth more today, by ' + fmt(diff) + ' notes — even though the payment stream totals ' + fmt(nominal-lump,0) + ' more notes on paper.';
+    } else {
+      verdict.className = 'verdict good';
+      verdict.textContent = 'The payment stream is worth more today, by ' + fmt(Math.abs(diff)) + ' notes, even after discounting.';
+    }
+  }
+
+  function recalcAll(){ round1(); round2(); round3(); }
+
+  ['r1-today','r1-future','r1-years','r1-rate'].forEach(function(id){
+    $(id).addEventListener('input', round1);
+  });
+  ['r2-principal','r2-rate','r2-years'].forEach(function(id){
+    $(id).addEventListener('input', round2);
+  });
+  ['r3-lump','r3-payment','r3-nyears','r3-disc'].forEach(function(id){
+    $(id).addEventListener('input', round3);
+  });
+
+  window.addEventListener('resize', function(){ round2(); });
+
+  recalcAll();
+})();
+</script>
